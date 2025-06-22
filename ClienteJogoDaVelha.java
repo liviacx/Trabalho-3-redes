@@ -21,22 +21,34 @@ public class ClienteJogoDaVelha {
     private JTextArea chatArea;
     private JTextField chatInput;
     private JButton enviarButton;
+    private AudioManager audioManager;
+    private JButton gravarAudioButton;
+    private JButton pararAudioButton;
+    private String servidorIP = "localhost";
 
 
     public static void main(String[] args) {
+        ClienteJogoDaVelha cliente = new ClienteJogoDaVelha();
         SwingUtilities.invokeLater(() -> {
             try {
-                new ClienteJogoDaVelha().inicializar();
+                cliente.inicializar();
             } catch (Exception e) {
                 e.printStackTrace();
             }
         });
+        
+        // Adiciona shutdown hook para fechar o AudioManager
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            if (cliente.audioManager != null) {
+                cliente.audioManager.close();
+            }
+        }));
     }
 
     private void inicializar() {
         frame = new JFrame("Jogo da Velha - Cliente (O)");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(700, 500);// Aumentei um pouco o tamanho
+        frame.setSize(800, 600);// Aumentei um pouco o tamanho
         
         // Painel principal com BorderLayout
         mainPanel = new JPanel(new BorderLayout());
@@ -69,6 +81,7 @@ public class ClienteJogoDaVelha {
         
         conectarButton.addActionListener(e -> {
             String ip = ipField.getText();
+            servidorIP = ip; // Atualiza o IP do servidor
             new Thread(() -> conectarServidor(ip)).start();
         });
         
@@ -83,7 +96,7 @@ public class ClienteJogoDaVelha {
         reiniciarButton.setVisible(false);
 
         // Painel do chat
-        chatArea = new JTextArea(5, 30);
+        chatArea = new JTextArea(8, 35);
         chatArea.setEditable(false);
         chatArea.setLineWrap(true);
         chatArea.setWrapStyleWord(true);
@@ -95,6 +108,14 @@ public class ClienteJogoDaVelha {
         enviarButton.addActionListener(e -> enviarMensagemChat());
         chatInput.addActionListener(e -> enviarMensagemChat());
 
+        // Botões de áudio
+        gravarAudioButton = new JButton("🎤 Abrir Áudio");
+        pararAudioButton = new JButton("⏹️ Fechar Áudio");
+        pararAudioButton.setEnabled(false);
+        
+        gravarAudioButton.addActionListener(e -> iniciarGravacao());
+        pararAudioButton.addActionListener(e -> pararGravacao());
+
         JPanel chatPanel = new JPanel(new BorderLayout());
         chatPanel.add(scrollPane, BorderLayout.CENTER);
 
@@ -102,7 +123,12 @@ public class ClienteJogoDaVelha {
         inputPanel.add(chatInput, BorderLayout.CENTER);
         inputPanel.add(enviarButton, BorderLayout.EAST);
 
+        JPanel audioPanel = new JPanel(new FlowLayout());
+        audioPanel.add(gravarAudioButton);
+        audioPanel.add(pararAudioButton);
+
         chatPanel.add(inputPanel, BorderLayout.SOUTH);
+        chatPanel.add(audioPanel, BorderLayout.NORTH);
 
         // Adiciona o chat ao frame (ao lado ou abaixo do tabuleiro)
         frame.add(chatPanel, BorderLayout.EAST); // ou BorderLayout.SOUTH se preferir embaixo
@@ -141,6 +167,9 @@ public class ClienteJogoDaVelha {
                 
                 // Alterna os painéis inferiores
                 reiniciarButton.setVisible(true);
+                
+                // Inicializa o AudioManager após conectar
+                inicializarAudioManager();
             });
             
             new Thread(this::receberJogadas).start();
@@ -298,4 +327,33 @@ private class BotaoClickListener implements ActionListener {
     }
 }
 
+    private void inicializarAudioManager() {
+        try {
+            // Cliente usa porta 12347 para áudio, servidor usa 12346
+            audioManager = new AudioManager(12347, servidorIP, 12346);
+            audioManager.startPlaying(); // Cliente sempre escuta áudio do servidor
+            chatArea.append("Sistema: Áudio inicializado. Pressione 'Gravar Áudio' para falar.\n");
+        } catch (Exception e) {
+            chatArea.append("Sistema: Erro ao inicializar áudio: " + e.getMessage() + "\n");
+            e.printStackTrace();
+        }
+    }
+
+    private void iniciarGravacao() {
+        if (audioManager != null && !audioManager.isRecording()) {
+            audioManager.startRecording();
+            gravarAudioButton.setEnabled(false);
+            pararAudioButton.setEnabled(true);
+            chatArea.append("Sistema: Gravando áudio...\n");
+        }
+    }
+
+    private void pararGravacao() {
+        if (audioManager != null && audioManager.isRecording()) {
+            audioManager.stopRecording();
+            gravarAudioButton.setEnabled(true);
+            pararAudioButton.setEnabled(false);
+            chatArea.append("Sistema: Gravação parada.\n");
+        }
+    }
 }
