@@ -109,8 +109,8 @@ public class ClienteJogoDaVelha {
         chatInput.addActionListener(e -> enviarMensagemChat());
 
         // Botões de áudio
-        gravarAudioButton = new JButton("🎤 Abrir Áudio");
-        pararAudioButton = new JButton("⏹️ Fechar Áudio");
+        gravarAudioButton = new JButton("🎤 Abrir Microfone");
+        pararAudioButton = new JButton("⏹️ Fechar Microfone");
         pararAudioButton.setEnabled(false);
         
         gravarAudioButton.addActionListener(e -> iniciarGravacao());

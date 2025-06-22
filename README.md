@@ -20,8 +20,8 @@ Este projeto implementa um jogo da velha multiplayer com funcionalidade de chat 
 ### Como Usar
 1. **Conectar**: Primeiro conecte o cliente ao servidor
 2. **Inicialização**: O áudio é inicializado automaticamente após a conexão
-3. **Gravar**: Clique no botão "🎤 Abrir Áudio" para começar a falar
-4. **Parar**: Clique no botão "⏹️ Fechar Áudio" para parar a gravação
+3. **Gravar**: Clique no botão "🎤 Abrir Microfone" para começar a falar
+4. **Parar**: Clique no botão "⏹️ Fechar Microfone" para parar a gravação
 5. **Ouvir**: O áudio do oponente é reproduzido automaticamente
 
 ### Requisitos de Hardware
